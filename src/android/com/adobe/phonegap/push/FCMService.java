@@ -30,6 +30,10 @@ import android.text.Html;
 import android.text.Spanned;
 import android.util.Log;
 
+import android.os.PowerManager;
+import android.app.KeyguardManager;
+import android.app.KeyguardManager.KeyguardLock;
+
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
@@ -46,7 +50,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.security.SecureRandom;
+import java.util.Random;
 
 @SuppressLint("NewApi")
 public class FCMService extends FirebaseMessagingService implements PushConstants {
@@ -67,6 +71,8 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
       messageList.add(message);
     }
   }
+
+  private PowerManager.WakeLock wl;
 
   @Override
   public void onMessageReceived(RemoteMessage message) {
@@ -252,7 +258,8 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
 
                 newExtras.putString(jsonKey, value);
               }
-            } else if (data.has(LOC_KEY) || data.has(LOC_DATA)) {
+            }
+            else if (data.has(LOC_KEY) || data.has(LOC_DATA)) {
               String newKey = normalizeKey(key, messageKey, titleKey);
               Log.d(LOG_TAG, "replace key " + key + " with " + newKey);
               replaceKey(context, key, newKey, extras, newExtras);
@@ -319,6 +326,9 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
     String title = extras.getString(TITLE);
     String contentAvailable = extras.getString(CONTENT_AVAILABLE);
     String forceStart = extras.getString(FORCE_START);
+    String recommend = extras.getString(RECOMMEND_ORDER);
+    String pushtype = extras.getString(PUSH_TYPE);
+    String driverenable = extras.getString(OPEN_ON_LOCK);
     int badgeCount = extractBadgeCount(extras);
     if (badgeCount >= 0) {
       Log.d(LOG_TAG, "count =[" + badgeCount + "]");
@@ -341,19 +351,48 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
       createNotification(context, extras);
     }
 
-    if (!PushPlugin.isActive() && "1".equals(forceStart)) {
-      Log.d(LOG_TAG, "app is not running but we should start it and put in background");
-      Intent intent = new Intent(this, PushHandlerActivity.class);
-      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-      intent.putExtra(PUSH_BUNDLE, extras);
-      intent.putExtra(START_IN_BACKGROUND, true);
-      intent.putExtra(FOREGROUND, false);
-      startActivity(intent);
-    } else if ("1".equals(contentAvailable)) {
+    if ( "1".equals(pushtype) || "2".equals(pushtype) || "99".equals(pushtype) ) {
+        if (!PushPlugin.isInForeground()) {
+            showCustomDialog(title, message);
+        }
+    } else if (!PushPlugin.isActive() && "1".equals(forceStart)) {
+        Log.d(LOG_TAG, "app is not running but we should start it and put in background");
+        Intent intent = new Intent(this, PushHandlerActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.putExtra(PUSH_BUNDLE, extras);
+        intent.putExtra(START_IN_BACKGROUND, true);
+        intent.putExtra(FOREGROUND, false);
+        startActivity(intent);
+    }
+
+    if ("1".equals(contentAvailable)) {
       Log.d(LOG_TAG, "app is not running and content available true");
       Log.d(LOG_TAG, "send notification event");
       PushPlugin.sendExtras(extras);
     }
+
+    //if (!PushPlugin.isActive() && "1".equals(forceStart)) {
+    //  Log.d(LOG_TAG, "app is not running but we should start it and put in background");
+    //  Intent intent = new Intent(this, PushHandlerActivity.class);
+    //  intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+    //  intent.putExtra(PUSH_BUNDLE, extras);
+    //  intent.putExtra(START_IN_BACKGROUND, true);
+    //  intent.putExtra(FOREGROUND, false);
+    //  startActivity(intent);
+    //} else if ("1".equals(contentAvailable)) {
+    //  Log.d(LOG_TAG, "app is not running and content available true");
+    //  Log.d(LOG_TAG, "send notification event");
+    //  PushPlugin.sendExtras(extras);
+    //}
+  }
+
+  public void showCustomDialog (String title, String message) {
+      Intent intent = new Intent(this, CustomPopupActivity.class);
+      intent.putExtra("TITLE", title);
+      intent.putExtra("MESSAGE", message);
+      intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+      startActivity(intent);
   }
 
   public void createNotification(Context context, Bundle extras) {
@@ -368,8 +407,7 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
     notificationIntent.putExtra(PUSH_BUNDLE, extras);
     notificationIntent.putExtra(NOT_ID, notId);
 
-    SecureRandom random = new SecureRandom();
-    int requestCode = random.nextInt();
+    int requestCode = new Random().nextInt();
     PendingIntent contentIntent = PendingIntent.getActivity(this, requestCode, notificationIntent,
         PendingIntent.FLAG_UPDATE_CURRENT);
 
@@ -379,7 +417,7 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
     dismissedNotificationIntent.putExtra(DISMISSED, true);
     dismissedNotificationIntent.setAction(PUSH_DISMISSED);
 
-    requestCode = random.nextInt();
+    requestCode = new Random().nextInt();
     PendingIntent deleteIntent = PendingIntent.getBroadcast(this, requestCode, dismissedNotificationIntent,
         PendingIntent.FLAG_CANCEL_CURRENT);
 
@@ -527,7 +565,7 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
         for (int i = 0; i < actionsArray.length(); i++) {
           int min = 1;
           int max = 2000000000;
-          SecureRandom random = new SecureRandom();
+          Random random = new Random();
           int uniquePendingIntentRequestCode = random.nextInt((max - min) + 1) + min;
           Log.d(LOG_TAG, "adding action");
           JSONObject action = actionsArray.getJSONObject(i);
@@ -933,8 +971,6 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
     SharedPreferences sharedPref = getApplicationContext().getSharedPreferences(PushPlugin.COM_ADOBE_PHONEGAP_PUSH,
         Context.MODE_PRIVATE);
     String savedSenderID = sharedPref.getString(SENDER_ID, "");
-
-    Log.d(LOG_TAG, "sender id = " + savedSenderID);
 
     return from.equals(savedSenderID) || from.startsWith("/topics/");
   }
