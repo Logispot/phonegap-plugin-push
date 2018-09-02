@@ -30,6 +30,10 @@ import android.text.Html;
 import android.text.Spanned;
 import android.util.Log;
 
+import android.os.PowerManager;
+import android.app.KeyguardManager;
+import android.app.KeyguardManager.KeyguardLock;
+
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
@@ -67,6 +71,8 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
       messageList.add(message);
     }
   }
+
+  private PowerManager.WakeLock wl;
 
   @Override
   public void onMessageReceived(RemoteMessage message) {
@@ -320,6 +326,9 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
     String title = extras.getString(TITLE);
     String contentAvailable = extras.getString(CONTENT_AVAILABLE);
     String forceStart = extras.getString(FORCE_START);
+    String recommend = extras.getString(RECOMMEND_ORDER);
+    String pushtype = extras.getString(PUSH_TYPE);
+    String driverenable = extras.getString(OPEN_ON_LOCK);
     int badgeCount = extractBadgeCount(extras);
     if (badgeCount >= 0) {
       Log.d(LOG_TAG, "count =[" + badgeCount + "]");
@@ -342,19 +351,48 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
       createNotification(context, extras);
     }
 
-    if (!PushPlugin.isActive() && "1".equals(forceStart)) {
-      Log.d(LOG_TAG, "app is not running but we should start it and put in background");
-      Intent intent = new Intent(this, PushHandlerActivity.class);
-      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-      intent.putExtra(PUSH_BUNDLE, extras);
-      intent.putExtra(START_IN_BACKGROUND, true);
-      intent.putExtra(FOREGROUND, false);
-      startActivity(intent);
-    } else if ("1".equals(contentAvailable)) {
+    if ( "1".equals(pushtype) || "2".equals(pushtype) || "99".equals(pushtype) ) {
+        if (!PushPlugin.isInForeground()) {
+            showCustomDialog(title, message);
+        }
+    } else if (!PushPlugin.isActive() && "1".equals(forceStart)) {
+        Log.d(LOG_TAG, "app is not running but we should start it and put in background");
+        Intent intent = new Intent(this, PushHandlerActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.putExtra(PUSH_BUNDLE, extras);
+        intent.putExtra(START_IN_BACKGROUND, true);
+        intent.putExtra(FOREGROUND, false);
+        startActivity(intent);
+    }
+
+    if ("1".equals(contentAvailable)) {
       Log.d(LOG_TAG, "app is not running and content available true");
       Log.d(LOG_TAG, "send notification event");
       PushPlugin.sendExtras(extras);
     }
+
+    //if (!PushPlugin.isActive() && "1".equals(forceStart)) {
+    //  Log.d(LOG_TAG, "app is not running but we should start it and put in background");
+    //  Intent intent = new Intent(this, PushHandlerActivity.class);
+    //  intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+    //  intent.putExtra(PUSH_BUNDLE, extras);
+    //  intent.putExtra(START_IN_BACKGROUND, true);
+    //  intent.putExtra(FOREGROUND, false);
+    //  startActivity(intent);
+    //} else if ("1".equals(contentAvailable)) {
+    //  Log.d(LOG_TAG, "app is not running and content available true");
+    //  Log.d(LOG_TAG, "send notification event");
+    //  PushPlugin.sendExtras(extras);
+    //}
+  }
+
+  public void showCustomDialog (String title, String message) {
+      Intent intent = new Intent(this, CustomPopupActivity.class);
+      intent.putExtra("TITLE", title);
+      intent.putExtra("MESSAGE", message);
+      intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+      startActivity(intent);
   }
 
   public void createNotification(Context context, Bundle extras) {

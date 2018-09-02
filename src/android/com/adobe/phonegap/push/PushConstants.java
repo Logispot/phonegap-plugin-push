@@ -74,6 +74,11 @@ public interface PushConstants {
   public static final String MP_MESSAGE = "mp_message";
   public static final String START_IN_BACKGROUND = "cdvStartInBackground";
   public static final String FORCE_START = "force-start";
+  public static final String RECOMMEND_ORDER = "recommend-order";
+  public static final String OPEN_ON_LOCK = "open-onlock";
+  public static final String PUSH_TYPE = "signal";
+  public static final String POPUP_TITLE = "popup-title";
+  public static final String POPUP_MESSAGE = "popup-message";
   public static final String MESSAGE_KEY = "messageKey";
   public static final String TITLE_KEY = "titleKey";
   public static final String NO_CACHE = "no-cache";
