@@ -324,6 +324,8 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
     // Send a notification if there is a message or title, otherwise just send data
     String message = extras.getString(MESSAGE);
     String title = extras.getString(TITLE);
+    String popupMessage = extras.getString(POPUP_MESSAGE);
+    String popupTitle = extras.getString(POPUP_TITLE);
     String contentAvailable = extras.getString(CONTENT_AVAILABLE);
     String forceStart = extras.getString(FORCE_START);
     String recommend = extras.getString(RECOMMEND_ORDER);
@@ -334,11 +336,6 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
       Log.d(LOG_TAG, "count =[" + badgeCount + "]");
       PushPlugin.setApplicationIconBadgeNumber(context, badgeCount);
     }
-
-    Log.d(LOG_TAG, "message =[" + message + "]");
-    Log.d(LOG_TAG, "title =[" + title + "]");
-    Log.d(LOG_TAG, "contentAvailable =[" + contentAvailable + "]");
-    Log.d(LOG_TAG, "forceStart =[" + forceStart + "]");
 
     if ((message != null && message.length() != 0) || (title != null && title.length() != 0)) {
 
@@ -353,7 +350,7 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
 
     if ( "1".equals(pushtype) || "2".equals(pushtype) || "99".equals(pushtype) ) {
         if (!PushPlugin.isInForeground()) {
-            showCustomDialog(title, message);
+            showCustomDialog(title, message, popupTitle, popupMessage);
         }
     } else if (!PushPlugin.isActive() && "1".equals(forceStart)) {
         Log.d(LOG_TAG, "app is not running but we should start it and put in background");
@@ -386,10 +383,12 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
     //}
   }
 
-  public void showCustomDialog (String title, String message) {
+  public void showCustomDialog (String title, String message, String popupTitle, String popupMessage) {
       Intent intent = new Intent(this, CustomPopupActivity.class);
       intent.putExtra("TITLE", title);
       intent.putExtra("MESSAGE", message);
+      intent.putExtra("POPUP_TITLE", popupTitle);
+      intent.putExtra("POPUP_MESSAGE", popupMessage);
       intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
       intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
       startActivity(intent);
