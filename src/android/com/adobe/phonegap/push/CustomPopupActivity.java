@@ -24,10 +24,11 @@ public class CustomPopupActivity extends Activity {
           iconId = applicationContext.getApplicationInfo().icon;
 
           Intent intent = getIntent();
-          String title = intent.getExtras().getString("TITLE");
-          String message = intent.getExtras().getString("MESSAGE");
-          Log.d(LOG_TAG, title);
-          Log.d(LOG_TAG, message);
+          String popupTitle = intent.getExtras().getString("POPUP_TITLE");
+          String popupMessage = intent.getExtras().getString("POPUP_MESSAGE");
+
+          String title = (popupTitle != null && !popupTitle.isEmpty()) ? popupTitle : intent.getExtras().getString("TITLE");
+          String message = (popupMessage != null && !popupMessage.isEmpty()) ? popupMessage : intent.getExtras().getString("MESSAGE");
 
           requestWindowFeature(Window.FEATURE_NO_TITLE);
 
