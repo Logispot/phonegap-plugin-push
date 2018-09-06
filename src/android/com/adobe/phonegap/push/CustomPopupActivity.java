@@ -26,6 +26,8 @@ public class CustomPopupActivity extends Activity {
           Intent intent = getIntent();
           String popupTitle = intent.getExtras().getString("POPUP_TITLE");
           String popupMessage = intent.getExtras().getString("POPUP_MESSAGE");
+          String positiveButton = intent.getExtras().getString("POSITIVE_BUTTON");
+          String negativeButton = intent.getExtras().getString("NEGATIVE_BUTTON");
 
           String title = (popupTitle != null && !popupTitle.isEmpty()) ? popupTitle : intent.getExtras().getString("TITLE");
           String message = (popupMessage != null && !popupMessage.isEmpty()) ? popupMessage : intent.getExtras().getString("MESSAGE");
@@ -55,8 +57,8 @@ public class CustomPopupActivity extends Activity {
           .setTitle(title)
           .setIcon(iconId)
           .setCancelable(false)
-          .setPositiveButton("닫기", dialogClickListener)
-          .setNegativeButton("어플열기", dialogClickListener);
+          .setPositiveButton((positiveButton != null && !positiveButton.isEmpty()) ? positiveButton : "닫기"), dialogClickListener)
+          .setNegativeButton((negativeButton != null && !negativeButton.isEmpty()) ? negativeButton : "어플열기"), dialogClickListener);
           AlertDialog alertDialog = builder.create();
 
           getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);

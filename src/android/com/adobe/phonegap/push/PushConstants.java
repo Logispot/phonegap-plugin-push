@@ -79,6 +79,8 @@ public interface PushConstants {
   public static final String PUSH_TYPE = "signal";
   public static final String POPUP_TITLE = "popup-title";
   public static final String POPUP_MESSAGE = "popup-message";
+  public static final String POSITIVE_BUTTON = "positive-button";
+  public static final String NEGATIVE_BUTTON = "negative-button";
   public static final String MESSAGE_KEY = "messageKey";
   public static final String TITLE_KEY = "titleKey";
   public static final String NO_CACHE = "no-cache";
