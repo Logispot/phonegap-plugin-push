@@ -57,8 +57,8 @@ public class CustomPopupActivity extends Activity {
           .setTitle(title)
           .setIcon(iconId)
           .setCancelable(false)
-          .setPositiveButton((positiveButton != null && !positiveButton.isEmpty()) ? positiveButton : "닫기"), dialogClickListener)
-          .setNegativeButton((negativeButton != null && !negativeButton.isEmpty()) ? negativeButton : "어플열기"), dialogClickListener);
+          .setPositiveButton((positiveButton != null && !positiveButton.isEmpty()) ? positiveButton : "닫기", dialogClickListener)
+          .setNegativeButton((negativeButton != null && !negativeButton.isEmpty()) ? negativeButton : "어플열기", dialogClickListener);
           AlertDialog alertDialog = builder.create();
 
           getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
