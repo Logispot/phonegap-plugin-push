@@ -326,6 +326,8 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
     String title = extras.getString(TITLE);
     String popupMessage = extras.getString(POPUP_MESSAGE);
     String popupTitle = extras.getString(POPUP_TITLE);
+    String positiveButton = extras.getString(POSITIVE_BUTTON);
+    String negativeButton = extras.getString(NEGATIVE_BUTTON);
     String contentAvailable = extras.getString(CONTENT_AVAILABLE);
     String forceStart = extras.getString(FORCE_START);
     String recommend = extras.getString(RECOMMEND_ORDER);
@@ -350,7 +352,7 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
 
     if ( "1".equals(pushtype) || "2".equals(pushtype) || "99".equals(pushtype) ) {
         if (!PushPlugin.isInForeground()) {
-            showCustomDialog(title, message, popupTitle, popupMessage);
+            showCustomDialog(title, message, popupTitle, popupMessage, positiveButton, negativeButton);
         }
     } else if (!PushPlugin.isActive() && "1".equals(forceStart)) {
         Log.d(LOG_TAG, "app is not running but we should start it and put in background");
@@ -383,12 +385,14 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
     //}
   }
 
-  public void showCustomDialog (String title, String message, String popupTitle, String popupMessage) {
+  public void showCustomDialog (String title, String message, String popupTitle, String popupMessage, String positiveButton, String negativeButton) {
       Intent intent = new Intent(this, CustomPopupActivity.class);
       intent.putExtra("TITLE", title);
       intent.putExtra("MESSAGE", message);
       intent.putExtra("POPUP_TITLE", popupTitle);
       intent.putExtra("POPUP_MESSAGE", popupMessage);
+      intent.putExtra("POSITIVE_BUTTON", positiveButton);
+      intent.putExtra("NEGATIVE_BUTTON", negativeButton);
       intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
       intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
       startActivity(intent);
