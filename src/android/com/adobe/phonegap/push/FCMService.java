@@ -350,9 +350,17 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
       createNotification(context, extras);
     }
 
+    if ("1".equals(contentAvailable)) {
+      Log.d(LOG_TAG, "app is not running and content available true");
+      Log.d(LOG_TAG, "send notification event");
+      PushPlugin.sendExtras(extras);
+    }
+
     if ( "1".equals(pushtype) || "2".equals(pushtype) || "99".equals(pushtype) ) {
         if (!PushPlugin.isInForeground()) {
-            showCustomDialog(title, message, popupTitle, popupMessage, positiveButton, negativeButton);
+          if(setTimeout(2000)) {
+              showCustomDialog(title, message, popupTitle, popupMessage, positiveButton, negativeButton);
+          }
         }
     } else if (!PushPlugin.isActive() && "1".equals(forceStart)) {
         Log.d(LOG_TAG, "app is not running but we should start it and put in background");
@@ -363,26 +371,17 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
         intent.putExtra(FOREGROUND, false);
         startActivity(intent);
     }
+  }
 
-    if ("1".equals(contentAvailable)) {
-      Log.d(LOG_TAG, "app is not running and content available true");
-      Log.d(LOG_TAG, "send notification event");
-      PushPlugin.sendExtras(extras);
-    }
+  public Boolean setTimeout(int delayTime){
+      long now = System.currentTimeMillis();
+      long currentTime = 0;
 
-    //if (!PushPlugin.isActive() && "1".equals(forceStart)) {
-    //  Log.d(LOG_TAG, "app is not running but we should start it and put in background");
-    //  Intent intent = new Intent(this, PushHandlerActivity.class);
-    //  intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-    //  intent.putExtra(PUSH_BUNDLE, extras);
-    //  intent.putExtra(START_IN_BACKGROUND, true);
-    //  intent.putExtra(FOREGROUND, false);
-    //  startActivity(intent);
-    //} else if ("1".equals(contentAvailable)) {
-    //  Log.d(LOG_TAG, "app is not running and content available true");
-    //  Log.d(LOG_TAG, "send notification event");
-    //  PushPlugin.sendExtras(extras);
-    //}
+      while( currentTime - now< delayTime){
+        currentTime  = System.currentTimeMillis();
+      }
+
+      return true;
   }
 
   public void showCustomDialog (String title, String message, String popupTitle, String popupMessage, String positiveButton, String negativeButton) {
