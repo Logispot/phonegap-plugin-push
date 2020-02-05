@@ -10,7 +10,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
-
+import android.os.Build;
+import android.os.Vibrator;
+import android.os.VibrationEffect;
+import android.net.Uri;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
 import android.util.Log;
 
 public class CustomPopupActivity extends Activity {
@@ -66,6 +71,9 @@ public class CustomPopupActivity extends Activity {
           getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
           getWindow().addFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
           alertDialog.show();
+
+          startVibrate();
+          startSound();
      }
 
      private void launchApp() {
@@ -73,6 +81,24 @@ public class CustomPopupActivity extends Activity {
          Intent launchIntent = pm.getLaunchIntentForPackage(getApplicationContext().getPackageName());
          launchIntent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
          startActivity(launchIntent);
+     }
+
+     private void startVibrate() {
+         Vibrator vibrator;
+         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+
+         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+             vibrator.vibrate(VibrationEffect.createOneShot(1000, VibrationEffect.DEFAULT_AMPLITUDE));
+         } else {
+             //deprecated in API 26
+             vibrator.vibrate(1000);
+         }
+     }
+
+     private void startSound() {
+         Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+         Ringtone ringtone = RingtoneManager.getRingtone(getApplicationContext(), notification);
+         ringtone.play();
      }
 
 }
